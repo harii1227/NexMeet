@@ -146,19 +146,7 @@ export default function ServiceWorkerRegister() {
         </div>
       )}
 
-      {/* SW status dot (dev only) */}
-      {process.env.NODE_ENV === "development" && swReady && (
-        <div style={{
-          position: "fixed", bottom: 8, right: 8, zIndex: 9997,
-          background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: 20, padding: "4px 10px",
-          fontSize: 10, color: "#22c55e",
-          display: "flex", alignItems: "center", gap: 5,
-        }}>
-          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#22c55e" }} />
-          SW active
-        </div>
-      )}
+
     </>
   );
 }

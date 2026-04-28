@@ -248,54 +248,54 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
 
   const toggleVideo = useCallback(async (): Promise<void> => {
     const currentVideoTrack = localStreamRef.current?.getVideoTracks()[0];
-    const isCurrentlyOff = !currentVideoTrack || !currentVideoTrack.enabled || currentVideoTrack.readyState === "ended";
+    const trackEnded = !currentVideoTrack || currentVideoTrack.readyState === "ended";
+    const isCurrentlyOff = trackEnded || !currentVideoTrack.enabled;
 
     if (!isCurrentlyOff) {
-      // ── Turning OFF ──
+      // ── Turning OFF: just disable, keep track alive in peer connections ──
       currentVideoTrack!.enabled = false;
       setVideoOff(true);
       socketRef.current?.emit("toggle-video", { roomId, videoOff: true });
+      // Force re-render of local stream so VideoTile sees the disabled track
+      setLocalStream(new MediaStream(localStreamRef.current!.getTracks()));
     } else {
-      // ── Turning ON: get fresh camera stream ──
+      // ── Turning ON ──
       try {
-        const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        const newVideoTrack = newStream.getVideoTracks()[0];
+        if (!trackEnded) {
+          // Track still alive — just re-enable it, no renegotiation needed
+          currentVideoTrack!.enabled = true;
+          setVideoOff(false);
+          socketRef.current?.emit("toggle-video", { roomId, videoOff: false });
+          // Force re-render of local stream so VideoTile sees the enabled track
+          setLocalStream(new MediaStream(localStreamRef.current!.getTracks()));
+        } else {
+          // Track was stopped (e.g. after screen share) — get fresh camera
+          const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const newVideoTrack = newStream.getVideoTracks()[0];
 
-        // Remove old video track from local stream
-        localStreamRef.current?.getVideoTracks().forEach((t) => {
-          localStreamRef.current?.removeTrack(t);
-          t.stop();
-        });
+          // Replace in local stream ref
+          localStreamRef.current?.getVideoTracks().forEach((t) => {
+            localStreamRef.current?.removeTrack(t);
+            t.stop();
+          });
+          localStreamRef.current?.addTrack(newVideoTrack);
 
-        // Add new video track to local stream
-        localStreamRef.current?.addTrack(newVideoTrack);
-
-        // Replace track in ALL peer connections + renegotiate
-        for (const [peerId, pc] of Object.entries(peersRef.current)) {
-          const sender = pc.getSenders().find((s) => s.track?.kind === "video");
-          if (sender) {
-            await sender.replaceTrack(newVideoTrack);
-          } else {
-            pc.addTrack(newVideoTrack, localStreamRef.current!);
+          // Replace track in all peer connections — no renegotiation needed for replaceTrack
+          for (const pc of Object.values(peersRef.current)) {
+            const sender = pc.getSenders().find((s) => s.track?.kind === "video");
+            if (sender) {
+              await sender.replaceTrack(newVideoTrack);
+            }
           }
 
-          // Renegotiate: create new offer and send to peer
-          try {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            socketRef.current?.emit("offer", { to: peerId, offer });
-          } catch (err) {
-            console.error(`Renegotiation error with peer ${peerId}:`, err);
-          }
+          // Update local preview stream
+          const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
+          const combined = new MediaStream([newVideoTrack, ...audioTracks]);
+          localStreamRef.current = combined;
+          setLocalStream(combined);
+          setVideoOff(false);
+          socketRef.current?.emit("toggle-video", { roomId, videoOff: false });
         }
-
-        // Update local preview
-        const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
-        const combined = new MediaStream([newVideoTrack, ...audioTracks]);
-        setLocalStream(combined);
-        localStreamRef.current = combined;
-        setVideoOff(false);
-        socketRef.current?.emit("toggle-video", { roomId, videoOff: false });
       } catch (err) {
         console.error("Camera re-enable error:", err);
       }

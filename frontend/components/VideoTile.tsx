@@ -32,8 +32,13 @@ export default function VideoTile({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && stream) videoRef.current.srcObject = stream;
-  }, [stream]);
+    if (!videoRef.current) return;
+    if (stream) {
+      videoRef.current.srcObject = stream;
+    } else {
+      videoRef.current.srcObject = null;
+    }
+  }, [stream, videoOff]);
 
   const initials = name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?";
   const [c1, c2] = getColor(name);

@@ -88,14 +88,7 @@ export default function Home() {
           </div>
           <span style={{ color: "white", fontWeight: 800, fontSize: 18, letterSpacing: "-0.3px" }}>MeetNow</span>
         </div>
-        <div style={{
-          background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 20, padding: "5px 14px", fontSize: 12, color: "#6b7280",
-          display: "flex", alignItems: "center", gap: 6,
-        }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e" }} />
-          WebRTC · No sign-up
-        </div>
+
       </nav>
 
       {/* Main content */}
@@ -315,15 +308,6 @@ export default function Home() {
             <InstallButton />
           </div>
         </div>
-      </div>
-
-      {/* Bottom bar */}
-      <div style={{
-        position: "relative", zIndex: 1,
-        textAlign: "center", padding: "12px 16px",
-        color: "#374151", fontSize: 11,
-      }}>
-        Built with WebRTC + Socket.IO · Open source · No data stored
       </div>
     </div>
   );
