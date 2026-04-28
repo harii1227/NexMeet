@@ -337,19 +337,22 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
   }, [roomId]);
 
   const startScreenShare = useCallback(async (): Promise<void> => {
-    const mediaDevices = navigator.mediaDevices as any;
-    const getDisplayMedia = mediaDevices?.getDisplayMedia || (navigator as any).getDisplayMedia;
-
-    if (!getDisplayMedia) {
-      alert("Screen sharing is not supported by your browser. Please ensure you are using a modern browser like Chrome or Safari, and that the page is served over HTTPS.");
-      return;
-    }
-
     try {
-      // Use simpler constraints for better mobile compatibility
-      const screenStream = await getDisplayMedia.call(navigator.mediaDevices || navigator, { 
-        video: true,
-        audio: false 
+      const mediaDevices = navigator.mediaDevices as any;
+      // Aggressively search for the API in all possible locations
+      const getDisplayMediaFn = 
+        mediaDevices?.getDisplayMedia?.bind(mediaDevices) || 
+        (navigator as any).getDisplayMedia?.bind(navigator) || 
+        (navigator as any).webkitGetDisplayMedia?.bind(navigator) || 
+        (navigator as any).mozGetDisplayMedia?.bind(navigator);
+
+      if (!getDisplayMediaFn) {
+        throw new Error("Your browser blocks screen sharing. Try opening this link directly in Chrome or Safari (not inside WhatsApp/Facebook).");
+      }
+
+      // Use the simplest possible constraints for mobile
+      const screenStream = await getDisplayMediaFn({ 
+        video: true 
       });
       
       screenStreamRef.current = screenStream;
@@ -378,7 +381,7 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
     } catch (err: any) {
       console.error("Screen share error:", err);
       if (err.name !== "NotAllowedError") {
-        alert("Could not start screen sharing: " + err.message);
+        alert("Could not start screen sharing: " + err.message + "\n\nTip: If you are opening this from WhatsApp or another app, please copy the link and open it in the Google Chrome browser instead.");
       }
     }
   }, [roomId, stopScreenShare]);
