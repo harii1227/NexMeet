@@ -358,37 +358,27 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
         (navigator as any).mozGetDisplayMedia?.bind(navigator);
 
       let screenStream;
-      
-      if (getDisplayMediaFn) {
-        try {
-          // 1. Try standard getDisplayMedia
-          screenStream = await getDisplayMediaFn({ video: true });
-        } catch (e1) {
-          try {
-            // 2. Try with no constraints
-            screenStream = await getDisplayMediaFn();
-          } catch (e2) {
-            console.error("All getDisplayMedia attempts failed", e2);
-          }
-        }
+      const getDisplayMedia = (navigator.mediaDevices as any)?.getDisplayMedia?.bind(navigator.mediaDevices) || (navigator as any).getDisplayMedia?.bind(navigator);
+
+      if (!getDisplayMedia) {
+        throw new Error("Screen sharing is not supported in this browser. Please use Chrome on Android or Safari on iOS.");
       }
 
-      // 3. If still no stream, try getUserMedia fallbacks
-      if (!screenStream) {
-        try {
-          screenStream = await navigator.mediaDevices.getUserMedia({
-            video: { mediaSource: "screen" } as any
-          });
-        } catch (e3) {
-          try {
-            screenStream = await navigator.mediaDevices.getUserMedia({
-              video: { displaySurface: "monitor" } as any
-            });
-          } catch (e4) {
-            throw new Error("Screen sharing is not supported on this browser. Chrome on Android requires version 119+ or the 'Desktop Site' mode.");
-          }
-        }
+      try {
+        screenStream = await getDisplayMedia({ 
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 15 }
+          },
+          audio: false 
+        });
+      } catch (e) {
+        // Fallback to no constraints
+        screenStream = await getDisplayMedia();
       }
+
+      if (!screenStream) throw new Error("Could not start screen capture.");
       
       screenStreamRef.current = screenStream;
       const screenTrack = screenStream.getVideoTracks()[0];
@@ -418,7 +408,16 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
       }
 
       socketRef.current?.emit("screen-share-started", { roomId });
+      
       screenTrack.onended = () => stopScreenShare();
+      
+      // Mobile browsers often mute tracks when the app goes to background
+      screenTrack.onmute = () => {
+        console.log("Screen track muted (likely backgrounded)");
+      };
+      screenTrack.onunmute = () => {
+        console.log("Screen track unmuted (returned to foreground)");
+      };
     } catch (err: any) {
       console.error("Screen share error:", err);
       if (err.name !== "NotAllowedError") {
