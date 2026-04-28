@@ -284,7 +284,9 @@ function RoomContent() {
         }}>
           <CtrlBtn onClick={toggleAudio} label={audioMuted ? "Unmute" : "Mute"} active={!audioMuted} isMobile={isMobile} tooltip={audioMuted ? "Unmute microphone" : "Mute microphone"} icon={audioMuted ? <MicOffIcon size={isMobile ? 18 : 20} /> : <MicOnIcon size={isMobile ? 18 : 20} />} />
           <CtrlBtn onClick={toggleVideo} label={videoOff ? "Cam" : "Cam"} active={!videoOff} isMobile={isMobile} tooltip={videoOff ? "Turn on camera" : "Turn off camera"} icon={videoOff ? <CamOffIcon size={isMobile ? 18 : 20} /> : <CamOnIcon size={isMobile ? 18 : 20} />} />
-          <CtrlBtn onClick={switchCamera} label="Flip" active={true} isMobile={isMobile} tooltip="Switch camera" icon={<SwitchCamIcon size={isMobile ? 18 : 20} />} />
+          {isMobile && (
+            <CtrlBtn onClick={switchCamera} label="Flip" active={true} isMobile={isMobile} tooltip="Switch camera" icon={<SwitchCamIcon size={isMobile ? 18 : 20} />} />
+          )}
           <CtrlBtn onClick={handleToggleScreen} label={screenSharing ? "Stop Share" : "Share"} active={true} highlight={screenSharing} isMobile={isMobile} tooltip={screenSharing ? "Stop screen sharing" : "Share your screen"} icon={<ScreenIcon size={isMobile ? 18 : 20} />} />
 
           {/* Leave — red */}
