@@ -337,16 +337,19 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
   }, [roomId]);
 
   const startScreenShare = useCallback(async (): Promise<void> => {
-    if (typeof navigator === "undefined" || !navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-      alert("Screen sharing is not supported on this browser or device. Please try using a desktop browser or Chrome on Android.");
+    const mediaDevices = navigator.mediaDevices as any;
+    const getDisplayMedia = mediaDevices?.getDisplayMedia || (navigator as any).getDisplayMedia;
+
+    if (!getDisplayMedia) {
+      alert("Screen sharing is not supported by your browser. Please ensure you are using a modern browser like Chrome or Safari, and that the page is served over HTTPS.");
       return;
     }
 
     try {
       // Use simpler constraints for better mobile compatibility
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+      const screenStream = await getDisplayMedia.call(navigator.mediaDevices || navigator, { 
         video: true,
-        audio: false // Most mobile browsers don't support audio capture with screen share
+        audio: false 
       });
       
       screenStreamRef.current = screenStream;
