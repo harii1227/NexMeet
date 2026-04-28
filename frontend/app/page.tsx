@@ -78,13 +78,11 @@ function HomeContent() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 11,
-            background: "linear-gradient(135deg,#4f8ef7,#7c5cfc)",
+            background: "white",
             display: "flex", alignItems: "center", justifyContent: "center",
+            overflow: "hidden",
           }}>
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2.2}>
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-            </svg>
+            <img src="/icons/Logo.png" alt="NexMeet Logo" style={{ width: "100%", height: "100%", objectFit: "contain", transform: "scale(1.4)" }} />
           </div>
           <span style={{ color: "white", fontWeight: 800, fontSize: 18, letterSpacing: "-0.3px" }}>NexMeet</span>
         </div>
@@ -96,22 +94,38 @@ function HomeContent() {
         flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
         padding: "0 16px", position: "relative", zIndex: 1,
       }}>
-        <div style={{ width: "100%", maxWidth: 440 }}>
-
+        <div style={{ width: "100%", maxWidth: 480 }}>
           {/* Hero text */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <h1 style={{
-              fontSize: "clamp(28px, 5vw, 42px)", fontWeight: 800,
-              color: "white", lineHeight: 1.15, letterSpacing: "-0.5px",
-              margin: "0 0 10px",
+            <div style={{
+              width: "100%", maxWidth: 600, margin: "0 auto 24px",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "clamp(12px, 3vw, 24px)",
+              padding: "10px 0",
+              animation: "wideReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1)",
             }}>
-              Video calls,{" "}
-              <span style={{
+              <style>{`
+                @keyframes wideReveal {
+                  from { opacity: 0; letter-spacing: -0.5em; filter: blur(10px); transform: scale(0.9); }
+                  to { opacity: 1; letter-spacing: 0.15em; filter: blur(0); transform: scale(1); }
+                }
+              `}</style>
+              
+              <span style={{ color: "#4f8ef7", fontSize: "clamp(12px, 2vw, 14px)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em" }}>Meet</span>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
+              <span style={{ color: "#7c5cfc", fontSize: "clamp(12px, 2vw, 14px)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em" }}>Connect</span>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
+              <span style={{ color: "#4f8ef7", fontSize: "clamp(12px, 2vw, 14px)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em" }}>Collaborate</span>
+            </div>
+
+            <h1 style={{
+              fontSize: "clamp(24px, 4.5vw, 36px)", fontWeight: 800,
+              color: "white", lineHeight: 1.15, letterSpacing: "-0.5px",
+              margin: "0 0 10px", transform: "translateX(-10px)",
+            }}>
+              Seamless Meetings <span style={{
                 background: "linear-gradient(135deg,#4f8ef7,#7c5cfc)",
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              }}>
-                instantly
-              </span>
+              }}>instantly</span>
             </h1>
             <p style={{ color: "#6b7280", fontSize: 15, margin: 0 }}>
               No downloads. No accounts. Just share a link.
@@ -288,25 +302,24 @@ function HomeContent() {
             )}
           </div>
 
-          {/* Feature pills + Install button */}
-          <div style={{
-            display: "flex", justifyContent: "center", gap: 10, marginTop: 20, flexWrap: "wrap",
-          }}>
-            {[
-              { icon: "🔒", label: "Encrypted" },
-              { icon: "⚡", label: "Low latency" },
-              { icon: "📱", label: "Mobile ready" },
-            ].map((f) => (
-              <div key={f.label} style={{
-                display: "flex", alignItems: "center", gap: 6,
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
-                borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#6b7280",
-              }}>
-                <span>{f.icon}</span><span>{f.label}</span>
-              </div>
-            ))}
-            <InstallButton />
-          </div>
+            {/* Feature pills */}
+            <div style={{
+              display: "flex", justifyContent: "center", gap: 10, marginTop: 20, flexWrap: "wrap",
+            }}>
+              {[
+                { icon: "🔒", label: "Encrypted" },
+                { icon: "⚡", label: "Low latency" },
+                { icon: "📱", label: "Mobile ready" },
+              ].map((f) => (
+                <div key={f.label} style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#6b7280",
+                }}>
+                  <span>{f.icon}</span><span>{f.label}</span>
+                </div>
+              ))}
+            </div>
         </div>
       </div>
     </div>
@@ -328,117 +341,5 @@ function Spinner() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <path strokeLinecap="round" d="M12 2a10 10 0 0 1 10 10" />
     </svg>
-  );
-}
-
-// Shows install button — works via browser prompt OR shows manual instructions
-function InstallButton() {
-  const [canInstall, setCanInstall] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [showManual, setShowManual] = useState(false);
-
-  useEffect(() => {
-    setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
-    // Check if prompt is available (set by ServiceWorkerRegister)
-    const check = () => setCanInstall(typeof window.__pwaInstallPrompt === "function");
-    check();
-    const t = setInterval(check, 500);
-    return () => clearInterval(t);
-  }, []);
-
-  if (isStandalone) return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 6,
-      background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)",
-      borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#22c55e",
-    }}>✓ App installed</div>
-  );
-
-  return (
-    <>
-      <button
-        onClick={() => {
-          if (canInstall && window.__pwaInstallPrompt) {
-            window.__pwaInstallPrompt();
-          } else {
-            setShowManual(true);
-          }
-        }}
-        style={{
-          display: "flex", alignItems: "center", gap: 6,
-          background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.25)",
-          borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#60a5fa",
-          cursor: "pointer",
-        }}
-      >
-        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        Install App
-      </button>
-
-      {/* Manual install instructions modal */}
-      {showManual && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 9999,
-          background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)",
-          display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
-        }} onClick={() => setShowManual(false)}>
-          <div style={{
-            background: "#16161f", border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: 24, padding: "28px 24px", maxWidth: 380, width: "100%",
-          }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ textAlign: "center", marginBottom: 20 }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: 16, margin: "0 auto 12px",
-                background: "linear-gradient(135deg,#4f8ef7,#7c5cfc)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-                </svg>
-              </div>
-              <div style={{ color: "white", fontWeight: 700, fontSize: 17 }}>Install NexMeet</div>
-              <div style={{ color: "#6b7280", fontSize: 13, marginTop: 4 }}>Add to your home screen</div>
-            </div>
-
-            {/* Steps */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                { browser: "Chrome / Edge", steps: ["Click the ⋮ menu (top right)", 'Select "Install NexMeet..." or "Add to Home Screen"', "Click Install"] },
-                { browser: "Safari (iOS)", steps: ['Tap the Share button (□↑)', '"Add to Home Screen"', "Tap Add"] },
-              ].map((b) => (
-                <div key={b.browser} style={{
-                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: 14, padding: "12px 14px",
-                }}>
-                  <div style={{ color: "#9ca3af", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-                    {b.browser}
-                  </div>
-                  {b.steps.map((s, i) => (
-                    <div key={i} style={{ display: "flex", gap: 8, marginBottom: 4, alignItems: "flex-start" }}>
-                      <span style={{
-                        width: 18, height: 18, borderRadius: "50%", flexShrink: 0,
-                        background: "linear-gradient(135deg,#4f8ef7,#7c5cfc)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 10, fontWeight: 700, color: "white",
-                      }}>{i + 1}</span>
-                      <span style={{ color: "#d1d5db", fontSize: 13 }}>{s}</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-
-            <button onClick={() => setShowManual(false)} style={{
-              width: "100%", marginTop: 16, padding: "12px 0", borderRadius: 14,
-              background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
-              color: "white", fontSize: 14, fontWeight: 600, cursor: "pointer",
-            }}>Got it</button>
-          </div>
-        </div>
-      )}
-    </>
   );
 }

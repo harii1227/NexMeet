@@ -92,13 +92,11 @@ function RoomContent() {
         <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10 }}>
           <div style={{
             width: isMobile ? 24 : 30, height: isMobile ? 24 : 30, borderRadius: isMobile ? 7 : 9,
-            background: "linear-gradient(135deg,#4f8ef7,#7c5cfc)",
+            background: "white",
             display: "flex", alignItems: "center", justifyContent: "center",
+            overflow: "hidden",
           }}>
-            <svg width={isMobile ? 14 : 16} height={isMobile ? 14 : 16} fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-            </svg>
+            <img src="/icons/Logo.png" alt="NexMeet Logo" style={{ width: "100%", height: "100%", objectFit: "contain", transform: "scale(1.4)" }} />
           </div>
           <span style={{ fontWeight: 700, fontSize: isMobile ? 14 : 15 }}>NexMeet</span>
         </div>
@@ -108,19 +106,17 @@ function RoomContent() {
 
         {/* Right: room id + status */}
         <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10 }}>
-          {!isMobile && (
-            <button onClick={copyId} style={{
-              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 8, padding: "4px 10px", color: "#9ca3af",
-              fontSize: 12, cursor: "pointer", fontFamily: "monospace",
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
-              {roomId}
-              {copied
-                ? <span style={{ color: "#22c55e" }}>✓</span>
-                : <span style={{ opacity: 0.5 }}>⎘</span>}
-            </button>
-          )}
+          <button onClick={copyId} style={{
+            background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 8, padding: isMobile ? "2px 8px" : "4px 10px", color: "#9ca3af",
+            fontSize: isMobile ? 10 : 12, cursor: "pointer", fontFamily: "monospace",
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+            {isMobile ? roomId.slice(0, 6) : roomId}
+            {copied
+              ? <span style={{ color: "#22c55e" }}>✓</span>
+              : <span style={{ opacity: 0.5 }}>⎘</span>}
+          </button>
           <div style={{
             display: "flex", alignItems: "center", gap: 6,
             background: "rgba(255,255,255,0.05)", borderRadius: 20,

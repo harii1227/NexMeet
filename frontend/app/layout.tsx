@@ -17,14 +17,8 @@ export const metadata: Metadata = {
     "msapplication-TileImage": "/icons/icon-144.png",
   },
   icons: {
-    icon: [
-      { url: "/icons/icon-32.png", sizes: "32x32" },
-      { url: "/icons/icon-96.png", sizes: "96x96" },
-    ],
-    apple: [
-      { url: "/icons/icon-152.png", sizes: "152x152" },
-      { url: "/icons/icon-192.png", sizes: "192x192" },
-    ],
+    icon: "/icons/Logo.png",
+    apple: "/icons/Logo.png",
   },
 };
 

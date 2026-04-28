@@ -10,11 +10,10 @@ declare global {
 }
 
 export default function ServiceWorkerRegister() {
-  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [installable, setInstallable] = useState(false);
   const [installed, setInstalled] = useState(false);
   const [offline, setOffline] = useState(false);
-  const [swReady, setSwReady] = useState(false);
 
   useEffect(() => {
     // ── Register Service Worker ──
@@ -23,20 +22,20 @@ export default function ServiceWorkerRegister() {
         .register("/sw.js", { scope: "/" })
         .then((reg) => {
           console.log("[SW] Registered:", reg.scope);
-          setSwReady(true);
         })
         .catch((err) => console.error("[SW] Failed:", err));
     }
 
-    // ── PWA already installed? ──
+    // ── Check if already installed ──
     if (window.matchMedia("(display-mode: standalone)").matches) {
       setInstalled(true);
-      return;
     }
 
     // ── Capture install prompt ──
-    const onPrompt = (e: Event) => {
+    const onPrompt = (e: any) => {
+      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
+      // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
       setInstallable(true);
       console.log("[PWA] Install prompt captured");
@@ -64,20 +63,32 @@ export default function ServiceWorkerRegister() {
   }, []);
 
   const triggerInstall = async () => {
-    if (!deferredPrompt) return;
-    // @ts-expect-error BeforeInstallPromptEvent
-    await deferredPrompt.prompt();
-    // @ts-expect-error BeforeInstallPromptEvent
+    if (!deferredPrompt) {
+      console.log("[PWA] No prompt available");
+      return;
+    }
+    
+    // Show the native install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
     console.log("[PWA] User choice:", outcome);
-    setDeferredPrompt(null);
-    setInstallable(false);
+    
+    if (outcome === 'accepted') {
+      setInstallable(false);
+      setDeferredPrompt(null);
+    }
   };
 
   // Expose to window so page.tsx Install button can call it
   useEffect(() => {
-    window.__pwaInstallPrompt = installable ? triggerInstall : undefined;
-  }, [installable, deferredPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (installable && deferredPrompt) {
+      window.__pwaInstallPrompt = triggerInstall;
+    } else {
+      window.__pwaInstallPrompt = undefined;
+    }
+  }, [installable, deferredPrompt]);
 
   return (
     <>
@@ -88,65 +99,73 @@ export default function ServiceWorkerRegister() {
           background: "#dc2626", color: "white", textAlign: "center",
           padding: "10px 16px", fontSize: 13, fontWeight: 600,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
         }}>
           📡 You are offline — video calls require an internet connection
         </div>
       )}
 
-      {/* Install banner — shown when browser fires beforeinstallprompt */}
+      {/* Compact PWA Install Banner (Top Right) */}
       {installable && !installed && (
         <div style={{
-          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-          zIndex: 9998, width: "calc(100% - 32px)", maxWidth: 400,
-          background: "#16161f",
-          border: "1px solid rgba(255,255,255,0.12)",
-          borderRadius: 20, padding: "16px 18px",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
-          display: "flex", alignItems: "center", gap: 14,
-          animation: "slideUp 0.3s ease-out",
+          position: "fixed", top: 70, right: 20,
+          zIndex: 9998, width: "calc(100% - 40px)", maxWidth: 280,
+          background: "rgba(22, 22, 31, 0.98)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          borderRadius: 20, padding: "12px 14px",
+          boxShadow: "0 12px 32px rgba(0,0,0,0.6)",
+          display: "flex", alignItems: "center", gap: 12,
+          animation: "slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
         }}>
           <style>{`
-            @keyframes slideUp {
-              from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-              to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            @keyframes slideIn {
+              from { opacity: 0; transform: translateX(20px) scale(0.95); }
+              to   { opacity: 1; transform: translateX(0) scale(1); }
             }
           `}</style>
 
           <div style={{
-            width: 46, height: 46, borderRadius: 13, flexShrink: 0,
-            background: "linear-gradient(135deg,#4f8ef7,#7c5cfc)",
+            width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+            background: "white",
             display: "flex", alignItems: "center", justifyContent: "center",
+            overflow: "hidden",
+            boxShadow: "0 4px 10px rgba(255, 255, 255, 0.1)",
           }}>
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+            <img src="/icons/Logo.png" alt="NexMeet Logo" style={{ width: "100%", height: "100%", objectFit: "contain", transform: "scale(1.4)" }} />
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ color: "white", fontWeight: 700, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Install NexMeet</div>
+            <button 
+              onClick={triggerInstall} 
+              style={{
+                background: "none", border: "none", color: "#4f8ef7", 
+                fontSize: 11, fontWeight: 700, cursor: "pointer", 
+                padding: 0, marginTop: 2, display: "block",
+              }}
+            >
+              Get App →
+            </button>
+          </div>
+          
+          <button 
+            onClick={() => setInstallable(false)}
+            style={{
+              background: "rgba(255,255,255,0.05)", border: "none", color: "#9ca3af",
+              cursor: "pointer", padding: "6px", borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "background 0.2s",
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+            onMouseOut={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+          >
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </div>
-
-          <div style={{ flex: 1 }}>
-            <div style={{ color: "white", fontWeight: 700, fontSize: 14 }}>Install NexMeet</div>
-            <div style={{ color: "#9ca3af", fontSize: 12, marginTop: 2 }}>
-              Add to home screen for instant access
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-            <button onClick={() => setInstallable(false)} style={{
-              background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 10, padding: "7px 12px", color: "#9ca3af",
-              fontSize: 12, cursor: "pointer",
-            }}>Later</button>
-            <button onClick={triggerInstall} style={{
-              background: "linear-gradient(135deg,#4f8ef7,#7c5cfc)",
-              border: "none", borderRadius: 10, padding: "7px 14px",
-              color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(79,142,247,0.4)",
-            }}>Install</button>
-          </div>
+          </button>
         </div>
       )}
-
-
     </>
   );
 }
