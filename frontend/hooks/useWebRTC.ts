@@ -301,50 +301,80 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
     }
   }, [roomId]);
 
-  const startScreenShare = useCallback(async (): Promise<void> => {
-    try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-      screenStreamRef.current = screenStream;
-      const screenTrack = screenStream.getVideoTracks()[0];
-
-      // Replace video track in all peer connections
-      Object.values(peersRef.current).forEach((pc) => {
-        const sender = pc.getSenders().find((s) => s.track?.kind === "video");
-        if (sender) sender.replaceTrack(screenTrack);
-      });
-
-      // Update local preview
-      const newStream = new MediaStream([
-        screenTrack,
-        ...(localStreamRef.current?.getAudioTracks() ?? []),
-      ]);
-      setLocalStream(newStream);
-      setScreenSharing(true);
-      socketRef.current?.emit("screen-share-started", { roomId });
-
-      screenTrack.onended = () => stopScreenShare();
-    } catch (err) {
-      console.error("Screen share error:", err);
-    }
-  }, [roomId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const stopScreenShare = useCallback((): void => {
+  const stopScreenShare = useCallback(async (): Promise<void> => {
     if (!screenStreamRef.current) return;
     screenStreamRef.current.getTracks().forEach((t) => t.stop());
     screenStreamRef.current = null;
 
-    const cameraTrack = localStreamRef.current?.getVideoTracks()[0];
+    const cameraTrack = localStreamRef.current?.getVideoTracks().find(t => t.readyState === "live");
+    
     if (cameraTrack) {
-      Object.values(peersRef.current).forEach((pc) => {
+      for (const pc of Object.values(peersRef.current)) {
         const sender = pc.getSenders().find((s) => s.track?.kind === "video");
-        if (sender) sender.replaceTrack(cameraTrack);
-      });
-      setLocalStream(localStreamRef.current);
+        if (sender) {
+          try {
+            await sender.replaceTrack(cameraTrack);
+          } catch (err) {
+            console.error("Failed to restore camera track for peer:", err);
+          }
+        }
+      }
+      
+      const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
+      setLocalStream(new MediaStream([cameraTrack, ...audioTracks]));
+    } else {
+      // If no camera track found, try to get a new one or just clear local stream
+      setLocalStream(new MediaStream(localStreamRef.current?.getAudioTracks() ?? []));
+      setVideoOff(true);
     }
 
     setScreenSharing(false);
     socketRef.current?.emit("screen-share-stopped", { roomId });
   }, [roomId]);
+
+  const startScreenShare = useCallback(async (): Promise<void> => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      alert("Screen sharing is not supported on this browser or device. Please try using a desktop browser or Chrome on Android.");
+      return;
+    }
+
+    try {
+      // Use simpler constraints for better mobile compatibility
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+        video: true,
+        audio: false // Most mobile browsers don't support audio capture with screen share
+      });
+      
+      screenStreamRef.current = screenStream;
+      const screenTrack = screenStream.getVideoTracks()[0];
+
+      // Replace video track in all peer connections
+      for (const pc of Object.values(peersRef.current)) {
+        const sender = pc.getSenders().find((s) => s.track?.kind === "video");
+        if (sender) {
+          try {
+            await sender.replaceTrack(screenTrack);
+          } catch (err) {
+            console.error("Failed to replace track for peer:", err);
+          }
+        }
+      }
+
+      // Update local preview
+      const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
+      const combined = new MediaStream([screenTrack, ...audioTracks]);
+      setLocalStream(combined);
+      setScreenSharing(true);
+      socketRef.current?.emit("screen-share-started", { roomId });
+
+      screenTrack.onended = () => stopScreenShare();
+    } catch (err: any) {
+      console.error("Screen share error:", err);
+      if (err.name !== "NotAllowedError") {
+        alert("Could not start screen sharing: " + err.message);
+      }
+    }
+  }, [roomId, stopScreenShare]);
 
   const sendMessage = useCallback((message: string): void => {
     if (!message.trim()) return;
