@@ -224,6 +224,16 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
       socket.on("chat-message", (msg: ChatMessage) => {
         setMessages((prev) => [...prev, msg]);
       });
+
+      // 11. Renegotiation request
+      socket.on("request-renegotiation", async ({ from }: { from: string }) => {
+        const pc = peersRef.current[from];
+        if (pc) {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit("offer", { to: from, offer });
+        }
+      });
     };
 
     init();
@@ -313,19 +323,20 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
     const cameraTrack = localStreamRef.current?.getVideoTracks().find(t => t.readyState === "live");
     
     if (cameraTrack) {
-      for (const pc of Object.values(peersRef.current)) {
+      for (const [id, pc] of Object.entries(peersRef.current)) {
         const sender = pc.getSenders().find((s) => s.track?.kind === "video");
         if (sender) {
-          try {
-            await sender.replaceTrack(cameraTrack);
-          } catch (err) {
-            console.error("Failed to restore camera track for peer:", err);
-          }
+          sender.replaceTrack(cameraTrack).catch(err => {
+            console.error(`Failed to restore camera track for peer ${id}:`, err);
+            socketRef.current?.emit("request-renegotiation", { to: id });
+          });
         }
       }
       
       const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
-      setLocalStream(new MediaStream([cameraTrack, ...audioTracks]));
+      const combined = new MediaStream([cameraTrack, ...audioTracks]);
+      localStreamRef.current = combined;
+      setLocalStream(combined);
     } else {
       // If no camera track found, try to get a new one or just clear local stream
       setLocalStream(new MediaStream(localStreamRef.current?.getAudioTracks() ?? []));
@@ -382,25 +393,31 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
       screenStreamRef.current = screenStream;
       const screenTrack = screenStream.getVideoTracks()[0];
 
+      // Update local stream ref and state
+      const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
+      const combined = new MediaStream([screenTrack, ...audioTracks]);
+      localStreamRef.current = combined;
+      setLocalStream(combined);
+      setScreenSharing(true);
+
       // Replace video track in all peer connections
-      for (const pc of Object.values(peersRef.current)) {
-        const sender = pc.getSenders().find((s) => s.track?.kind === "video");
-        if (sender) {
-          try {
-            await sender.replaceTrack(screenTrack);
-          } catch (err) {
-            console.error("Failed to replace track for peer:", err);
-          }
+      for (const [id, pc] of Object.entries(peersRef.current)) {
+        const senders = pc.getSenders();
+        const videoSender = senders.find((s) => s.track?.kind === "video");
+        
+        if (videoSender) {
+          console.log(`Replacing track for peer ${id}`);
+          videoSender.replaceTrack(screenTrack).catch(err => {
+            console.error(`Error replacing track for peer ${id}:`, err);
+            // Fallback: Renegotiate if replaceTrack fails
+            socketRef.current?.emit("request-renegotiation", { to: id });
+          });
+        } else {
+          console.warn(`No video sender found for peer ${id}`);
         }
       }
 
-      // Update local preview
-      const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
-      const combined = new MediaStream([screenTrack, ...audioTracks]);
-      setLocalStream(combined);
-      setScreenSharing(true);
       socketRef.current?.emit("screen-share-started", { roomId });
-
       screenTrack.onended = () => stopScreenShare();
     } catch (err: any) {
       console.error("Screen share error:", err);

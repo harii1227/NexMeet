@@ -98,6 +98,13 @@ io.on("connection", (socket) => {
     });
   });
 
+  // Renegotiation request
+  socket.on("request-renegotiation", ({ to }) => {
+    io.to(to).emit("request-renegotiation", {
+      from: socket.id,
+    });
+  });
+
   // --- Media state events ---
 
   socket.on("toggle-audio", ({ roomId, muted }) => {
