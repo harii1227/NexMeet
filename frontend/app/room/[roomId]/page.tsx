@@ -1,12 +1,12 @@
 "use client";
 
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useWebRTC } from "../../../hooks/useWebRTC";
 import VideoTile from "../../../components/VideoTile";
 import ChatPanel from "../../../components/ChatPanel";
 
-export default function RoomPage() {
+function RoomContent() {
   const params = useParams();
   const roomId = params.roomId as string;
   const searchParams = useSearchParams();
@@ -281,6 +281,14 @@ export default function RoomPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function RoomPage() {
+  return (
+    <Suspense fallback={<div style={{ height: "100vh", background: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>Loading room...</div>}>
+      <RoomContent />
+    </Suspense>
   );
 }
 
