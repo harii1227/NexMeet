@@ -109,7 +109,7 @@ function HomeContent() {
                   to { opacity: 1; letter-spacing: 0.15em; filter: blur(0); transform: scale(1); }
                 }
               `}</style>
-              
+
               <span style={{ color: "#4f8ef7", fontSize: "clamp(12px, 2vw, 14px)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em" }}>Meet</span>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
               <span style={{ color: "#7c5cfc", fontSize: "clamp(12px, 2vw, 14px)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em" }}>Connect</span>
@@ -302,24 +302,24 @@ function HomeContent() {
             )}
           </div>
 
-            {/* Feature pills */}
-            <div style={{
-              display: "flex", justifyContent: "center", gap: 10, marginTop: 20, flexWrap: "wrap",
-            }}>
-              {[
-                { icon: "🔒", label: "Encrypted" },
-                { icon: "⚡", label: "Low latency" },
-                { icon: "📱", label: "Mobile ready" },
-              ].map((f) => (
-                <div key={f.label} style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#6b7280",
-                }}>
-                  <span>{f.icon}</span><span>{f.label}</span>
-                </div>
-              ))}
-            </div>
+          {/* Feature pills */}
+          <div style={{
+            display: "flex", justifyContent: "center", gap: 10, marginTop: 20, flexWrap: "wrap",
+          }}>
+            {[
+              { icon: "🔒", label: "Encrypted" },
+              { icon: "⚡", label: "Low latency" },
+              { icon: "📱", label: "Mobile ready" },
+            ].map((f) => (
+              <div key={f.label} style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+                borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#6b7280",
+              }}>
+                <span>{f.icon}</span><span>{f.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

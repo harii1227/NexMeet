@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface VideoTileProps {
   stream?: MediaStream;
@@ -9,6 +9,8 @@ interface VideoTileProps {
   videoOff?: boolean;
   isLocal?: boolean;
   screenSharing?: boolean;
+  onHold?: () => void;
+  isPinned?: boolean;
 }
 
 const AVATAR_COLORS = [
@@ -28,8 +30,11 @@ function getColor(name: string) {
 
 export default function VideoTile({
   stream, name, muted = false, videoOff = false, isLocal = false, screenSharing = false,
+  onHold, isPinned = false,
 }: VideoTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const holdTimer = useRef<NodeJS.Timeout | null>(null);
+  const [isHolding, setIsHolding] = useState(false);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -43,13 +48,39 @@ export default function VideoTile({
   const initials = name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?";
   const [c1, c2] = getColor(name);
 
+  const startHold = () => {
+    setIsHolding(true);
+    holdTimer.current = setTimeout(() => {
+      onHold?.();
+      setIsHolding(false);
+    }, 600); // 600ms hold
+  };
+
+  const endHold = () => {
+    if (holdTimer.current) {
+      clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+    setIsHolding(false);
+  };
+
   return (
-    <div style={{
-      position: "relative", borderRadius: 16, overflow: "hidden",
-      background: "#16161f", border: "1px solid rgba(255,255,255,0.07)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      width: "100%", height: "100%",
-    }}>
+    <div 
+      onMouseDown={startHold}
+      onMouseUp={endHold}
+      onMouseLeave={endHold}
+      onTouchStart={startHold}
+      onTouchEnd={endHold}
+      style={{
+        position: "relative", borderRadius: 16, overflow: "hidden",
+        background: "#16161f", border: isPinned ? "2px solid #4f8ef7" : "1px solid rgba(255,255,255,0.07)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        width: "100%", height: "100%",
+        transition: "all 0.2s",
+        transform: isHolding ? "scale(0.98)" : "scale(1)",
+        boxShadow: isPinned ? "0 0 20px rgba(79,142,247,0.4)" : "none",
+      }}
+    >
       {/* Video or avatar */}
       {stream && !videoOff ? (
         <video
@@ -110,13 +141,35 @@ export default function VideoTile({
         )}
       </div>
 
-      {/* You badge */}
-      {isLocal && (
+      {/* Pin/Unpin Indicator */}
+      {isPinned && (
         <div style={{
-          position: "absolute", top: 8, left: 8,
-          background: "rgba(79,142,247,0.8)", color: "white",
-          fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20,
-        }}>You</div>
+          position: "absolute", top: 8, right: 8,
+          background: "rgba(79,142,247,0.9)", color: "white",
+          padding: "4px 8px", borderRadius: 8, fontSize: 10, fontWeight: 600,
+          display: "flex", alignItems: "center", gap: 4,
+          backdropFilter: "blur(4px)",
+        }}>
+          📌 Pinned
+        </div>
+      )}
+
+      {/* Holding overlay */}
+      {isHolding && (
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "rgba(79,142,247,0.2)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          pointerEvents: "none",
+        }}>
+          <div style={{
+            padding: "8px 16px", borderRadius: 20,
+            background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)",
+            color: "white", fontSize: 12, fontWeight: 600,
+          }}>
+            Hold to {isPinned ? "Unpin" : "Pin"}
+          </div>
+        </div>
       )}
     </div>
   );
