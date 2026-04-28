@@ -124,7 +124,7 @@ export default function ServiceWorkerRegister() {
           </div>
 
           <div style={{ flex: 1 }}>
-            <div style={{ color: "white", fontWeight: 700, fontSize: 14 }}>Install MeetNow</div>
+            <div style={{ color: "white", fontWeight: 700, fontSize: 14 }}>Install NexMeet</div>
             <div style={{ color: "#9ca3af", fontSize: 12, marginTop: 2 }}>
               Add to home screen for instant access
             </div>

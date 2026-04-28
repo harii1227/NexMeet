@@ -1,6 +1,6 @@
 {
-  "name": "MeetNow – Video Calls",
-  "short_name": "MeetNow",
+  "name": "NexMeet – Video Calls",
+  "short_name": "NexMeet",
   "description": "Free real-time video calls powered by WebRTC. No sign-up needed.",
   "start_url": "/",
   "scope": "/",

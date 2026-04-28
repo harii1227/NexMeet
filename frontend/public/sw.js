@@ -1,4 +1,4 @@
-const CACHE_NAME = "meetnow-v1";
+const CACHE_NAME = "nexmeet-v1";
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [

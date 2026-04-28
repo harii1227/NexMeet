@@ -75,7 +75,7 @@ export default function ControlBar({
       {/* Left — room info */}
       <div className="flex items-center gap-3 min-w-[180px]">
         <div className="flex flex-col">
-          <span className="text-white text-sm font-semibold">MeetNow</span>
+          <span className="text-white text-sm font-semibold">NexMeet</span>
           <button
             onClick={copyRoomId}
             className="flex items-center gap-1 text-gray-500 hover:text-gray-300 text-xs transition group"

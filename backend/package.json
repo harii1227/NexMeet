@@ -1,5 +1,5 @@
 {
-  "name": "video-call-backend",
+  "name": "nexmeet-backend",
   "version": "1.0.0",
   "description": "WebRTC signaling server",
   "main": "server.js",

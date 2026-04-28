@@ -86,7 +86,7 @@ export default function Home() {
                 d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
             </svg>
           </div>
-          <span style={{ color: "white", fontWeight: 800, fontSize: 18, letterSpacing: "-0.3px" }}>MeetNow</span>
+          <span style={{ color: "white", fontWeight: 800, fontSize: 18, letterSpacing: "-0.3px" }}>NexMeet</span>
         </div>
 
       </nav>
@@ -391,14 +391,14 @@ function InstallButton() {
                     d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
                 </svg>
               </div>
-              <div style={{ color: "white", fontWeight: 700, fontSize: 17 }}>Install MeetNow</div>
+              <div style={{ color: "white", fontWeight: 700, fontSize: 17 }}>Install NexMeet</div>
               <div style={{ color: "#6b7280", fontSize: 13, marginTop: 4 }}>Add to your home screen</div>
             </div>
 
             {/* Steps */}
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                { browser: "Chrome / Edge", steps: ["Click the ⋮ menu (top right)", 'Select "Install MeetNow..." or "Add to Home Screen"', "Click Install"] },
+                { browser: "Chrome / Edge", steps: ["Click the ⋮ menu (top right)", 'Select "Install NexMeet..." or "Add to Home Screen"', "Click Install"] },
                 { browser: "Safari (iOS)", steps: ['Tap the Share button (□↑)', '"Add to Home Screen"', "Tap Add"] },
               ].map((b) => (
                 <div key={b.browser} style={{
