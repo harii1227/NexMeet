@@ -346,14 +346,38 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
         (navigator as any).webkitGetDisplayMedia?.bind(navigator) || 
         (navigator as any).mozGetDisplayMedia?.bind(navigator);
 
-      if (!getDisplayMediaFn) {
-        throw new Error("Your browser blocks screen sharing. Try opening this link directly in Chrome or Safari (not inside WhatsApp/Facebook).");
+      let screenStream;
+      
+      if (getDisplayMediaFn) {
+        try {
+          // 1. Try standard getDisplayMedia
+          screenStream = await getDisplayMediaFn({ video: true });
+        } catch (e1) {
+          try {
+            // 2. Try with no constraints
+            screenStream = await getDisplayMediaFn();
+          } catch (e2) {
+            console.error("All getDisplayMedia attempts failed", e2);
+          }
+        }
       }
 
-      // Use the simplest possible constraints for mobile
-      const screenStream = await getDisplayMediaFn({ 
-        video: true 
-      });
+      // 3. If still no stream, try getUserMedia fallbacks
+      if (!screenStream) {
+        try {
+          screenStream = await navigator.mediaDevices.getUserMedia({
+            video: { mediaSource: "screen" } as any
+          });
+        } catch (e3) {
+          try {
+            screenStream = await navigator.mediaDevices.getUserMedia({
+              video: { displaySurface: "monitor" } as any
+            });
+          } catch (e4) {
+            throw new Error("Screen sharing is not supported on this browser. Chrome on Android requires version 119+ or the 'Desktop Site' mode.");
+          }
+        }
+      }
       
       screenStreamRef.current = screenStream;
       const screenTrack = screenStream.getVideoTracks()[0];
