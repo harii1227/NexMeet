@@ -45,7 +45,7 @@ function HomeContent() {
 
   return (
     <div style={{
-      height: "100vh", width: "100vw", overflow: "hidden",
+      height: "100dvh", width: "100vw", overflow: "hidden",
       display: "flex", flexDirection: "column",
       background: "#0a0a0f", position: "relative",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
