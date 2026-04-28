@@ -389,28 +389,42 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
   }, [roomId]);
 
   const switchCamera = useCallback(async (): Promise<void> => {
-    if (screenSharing) return; // Cannot switch camera while screen sharing
+    if (screenSharing) return;
     
     const newMode = facingMode === "user" ? "environment" : "user";
-    setFacingMode(newMode);
 
     try {
+      // 1. Stop current video tracks FIRST
+      if (localStreamRef.current) {
+        localStreamRef.current.getVideoTracks().forEach((t) => {
+          t.stop();
+          localStreamRef.current?.removeTrack(t);
+        });
+      }
+
+      // 2. Small delay to ensure hardware is released
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // 3. Request new camera
       const newStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: newMode } 
+        video: { 
+          facingMode: { exact: newMode } 
+        } 
+      }).catch(() => {
+        // Fallback if 'exact' fails
+        return navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: newMode } 
+        });
       });
+
       const newVideoTrack = newStream.getVideoTracks()[0];
+      setFacingMode(newMode);
 
       if (localStreamRef.current) {
-        // Stop and remove old video tracks
-        localStreamRef.current.getVideoTracks().forEach((t) => {
-          localStreamRef.current?.removeTrack(t);
-          t.stop();
-        });
-        // Add new track
         localStreamRef.current.addTrack(newVideoTrack);
       }
 
-      // Replace track in all peer connections
+      // 4. Replace track in all peer connections
       for (const pc of Object.values(peersRef.current)) {
         const sender = pc.getSenders().find((s) => s.track?.kind === "video");
         if (sender) {
@@ -418,18 +432,18 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
         }
       }
 
-      // Update local preview
+      // 5. Update local preview
       const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
       const combined = new MediaStream([newVideoTrack, ...audioTracks]);
       localStreamRef.current = combined;
       setLocalStream(combined);
       setVideoOff(false);
       
-      // Notify peers about video state
       socketRef.current?.emit("toggle-video", { roomId, videoOff: false });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Switch camera error:", err);
-      alert("Failed to switch camera: " + (err as any).message);
+      // Try to recover by restarting the original camera if possible
+      alert("Failed to switch camera: " + err.message);
     }
   }, [roomId, facingMode, screenSharing]);
 
