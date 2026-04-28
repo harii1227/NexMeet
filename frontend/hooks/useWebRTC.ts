@@ -28,8 +28,7 @@ function createBlackVideoTrack(): MediaStreamTrack {
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, 2, 2);
-  // @ts-expect-error captureStream is not in all TS types but works in all modern browsers
-  const stream = canvas.captureStream(1) as MediaStream;
+  const stream = (canvas as any).captureStream(1) as MediaStream;
   return stream.getVideoTracks()[0];
 }
 
