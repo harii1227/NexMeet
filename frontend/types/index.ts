@@ -41,6 +41,7 @@ export interface UseWebRTCReturn {
   startScreenShare: () => Promise<void>;
   stopScreenShare: () => void;
   sendMessage: (message: string) => void;
+  switchCamera: () => Promise<void>;
   leaveRoom: () => void;
   mySocketId: string | undefined;
 }

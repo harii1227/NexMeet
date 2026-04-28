@@ -28,7 +28,7 @@ function RoomContent() {
   const {
     localStream, peers, audioMuted, videoOff, screenSharing,
     status, messages, toggleAudio, toggleVideo,
-    startScreenShare, stopScreenShare, sendMessage, leaveRoom, mySocketId,
+    startScreenShare, stopScreenShare, sendMessage, switchCamera, leaveRoom, mySocketId,
   } = useWebRTC(roomId, userName);
 
   const [chatOpen, setChatOpen] = useState(false);
@@ -284,6 +284,7 @@ function RoomContent() {
         }}>
           <CtrlBtn onClick={toggleAudio} label={audioMuted ? "Unmute" : "Mute"} active={!audioMuted} isMobile={isMobile} tooltip={audioMuted ? "Unmute microphone" : "Mute microphone"} icon={audioMuted ? <MicOffIcon size={isMobile ? 18 : 20} /> : <MicOnIcon size={isMobile ? 18 : 20} />} />
           <CtrlBtn onClick={toggleVideo} label={videoOff ? "Cam" : "Cam"} active={!videoOff} isMobile={isMobile} tooltip={videoOff ? "Turn on camera" : "Turn off camera"} icon={videoOff ? <CamOffIcon size={isMobile ? 18 : 20} /> : <CamOnIcon size={isMobile ? 18 : 20} />} />
+          <CtrlBtn onClick={switchCamera} label="Flip" active={true} isMobile={isMobile} tooltip="Switch camera" icon={<SwitchCamIcon size={isMobile ? 18 : 20} />} />
           <CtrlBtn onClick={handleToggleScreen} label={screenSharing ? "Stop Share" : "Share"} active={true} highlight={screenSharing} isMobile={isMobile} tooltip={screenSharing ? "Stop screen sharing" : "Share your screen"} icon={<ScreenIcon size={isMobile ? 18 : 20} />} />
 
           {/* Leave — red */}
@@ -600,5 +601,12 @@ const ChatIcon = ({ size = 20 }: { size?: number }) => (
 const LeaveIcon = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+  </svg>
+);
+const SwitchCamIcon = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7 9h.01" />
   </svg>
 );

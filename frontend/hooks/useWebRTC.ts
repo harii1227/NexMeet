@@ -44,6 +44,7 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
 
   const [audioMuted, setAudioMuted] = useState<boolean>(false);
   const [videoOff, setVideoOff] = useState<boolean>(false);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [screenSharing, setScreenSharing] = useState<boolean>(false);
   const screenStreamRef = useRef<MediaStream | null>(null);
 
@@ -130,7 +131,10 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
     const init = async () => {
       // 1. Get camera + mic
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode }, 
+          audio: true 
+        });
         if (!mounted) return;
         localStreamRef.current = stream;
         setLocalStream(stream);
@@ -381,6 +385,51 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
     socketRef.current?.emit("chat-message", { roomId, message });
   }, [roomId]);
 
+  const switchCamera = useCallback(async (): Promise<void> => {
+    if (screenSharing) return; // Cannot switch camera while screen sharing
+    
+    const newMode = facingMode === "user" ? "environment" : "user";
+    setFacingMode(newMode);
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: newMode } 
+      });
+      const newVideoTrack = newStream.getVideoTracks()[0];
+
+      if (localStreamRef.current) {
+        // Stop and remove old video tracks
+        localStreamRef.current.getVideoTracks().forEach((t) => {
+          localStreamRef.current?.removeTrack(t);
+          t.stop();
+        });
+        // Add new track
+        localStreamRef.current.addTrack(newVideoTrack);
+      }
+
+      // Replace track in all peer connections
+      for (const pc of Object.values(peersRef.current)) {
+        const sender = pc.getSenders().find((s) => s.track?.kind === "video");
+        if (sender) {
+          await sender.replaceTrack(newVideoTrack);
+        }
+      }
+
+      // Update local preview
+      const audioTracks = localStreamRef.current?.getAudioTracks() ?? [];
+      const combined = new MediaStream([newVideoTrack, ...audioTracks]);
+      localStreamRef.current = combined;
+      setLocalStream(combined);
+      setVideoOff(false);
+      
+      // Notify peers about video state
+      socketRef.current?.emit("toggle-video", { roomId, videoOff: false });
+    } catch (err) {
+      console.error("Switch camera error:", err);
+      alert("Failed to switch camera: " + (err as any).message);
+    }
+  }, [roomId, facingMode, screenSharing]);
+
   const leaveRoom = useCallback((): void => {
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     socketRef.current?.disconnect();
@@ -400,6 +449,7 @@ export function useWebRTC(roomId: string, userName: string): UseWebRTCReturn {
     startScreenShare,
     stopScreenShare,
     sendMessage,
+    switchCamera,
     leaveRoom,
     mySocketId: socketRef.current?.id,
   };
